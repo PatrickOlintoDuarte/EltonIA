@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Elton - Suporte de TI | Panda Fibra</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body{
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
+    }
+    .chat-container{
+      width:100%; max-width:500px; height:90vh; max-height:700px; background:#fff; border-radius:16px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3); display:flex; flex-direction:column; overflow:hidden; animation:slideUp .4s ease;
+    }
+    @keyframes slideUp{ from{opacity:0; transform:translateY(30px);} to{opacity:1; transform:translateY(0);} }
+    .chat-header{
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; padding:20px; display:flex; gap:12px; align-items:center;
+      border-bottom:3px solid rgba(0,0,0,.1);
+    }
+    .chat-header-avatar{
+      width:45px; height:45px; background:rgba(255,255,255,.2); border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:24px; border:2px solid rgba(255,255,255,.4);
+    }
+    .chat-header-info h2{ font-size:16px; font-weight:700; margin:0; }
+    .chat-header-info p{ font-size:12px; opacity:.9; margin:3px 0 0 0; }
+    .online-indicator{ display:inline-block; width:8px; height:8px; background:#10b981; border-radius:50%; animation:pulse 2s infinite; margin-right:4px; }
+    @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.5;} }
+
+    .messages-container{ flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; background:#f8f9fa; }
+    .message{ display:flex; gap:8px; animation:messageIn .3s ease; }
+    @keyframes messageIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+    .message.user{ justify-content:flex-end; }
+    .message-content{ max-width:70%; padding:12px 16px; border-radius:12px; word-wrap:break-word; font-size:14px; line-height:1.5; }
+    .message.assistant .message-content{ background:#e8eaf6; color:#333; border-radius:12px 12px 12px 0; box-shadow:0 2px 4px rgba(0,0,0,.1); }
+    .message.user .message-content{ background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border-radius:12px 12px 0 12px; box-shadow:0 2px 4px rgba(102,126,234,.3); }
+    .message.system .message-content{ background:#fef3c7; color:#92400e; border-radius:12px; text-align:center; font-size:12px; margin:0 auto; }
+
+    .typing-indicator{ display:flex; gap:4px; padding:12px 16px; background:#e8eaf6; border-radius:12px; width:fit-content; }
+    .typing-dot{ width:8px; height:8px; background:#667eea; border-radius:50%; animation:typing 1.4s infinite; }
+    .typing-dot:nth-child(2){ animation-delay:.2s; }
+    .typing-dot:nth-child(3){ animation-delay:.4s; }
+    @keyframes typing{ 0%,60%,100%{ transform:translateY(0); opacity:.5;} 30%{ transform:translateY(-10px); opacity:1;} }
+
+    .chat-input-container{ padding:15px; border-top:1px solid #e0e0e0; background:#fff; display:flex; gap:10px; align-items:flex-end; }
+    .input-wrapper{ flex:1; display:flex; gap:8px; align-items:center; background:#f5f5f5; border-radius:24px; padding:10px 15px; border:2px solid #e0e0e0; transition:border-color .3s ease; }
+    .input-wrapper:focus-within{ border-color:#667eea; background:#f8f9fa; }
+    .input-wrapper input{ flex:1; border:none; background:transparent; font-size:14px; outline:none; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .input-wrapper input::placeholder{ color:#999; }
+    .send-btn{ background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; width:40px; height:40px; border-radius:50%;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:all .3s ease; flex-shrink:0; }
+    .send-btn:hover{ transform:translateY(-2px); box-shadow:0 5px 15px rgba(102,126,234,.4); }
+    .send-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+    .messages-container::-webkit-scrollbar{ width:6px; }
+    .messages-container::-webkit-scrollbar-track{ background:transparent; }
+    .messages-container::-webkit-scrollbar-thumb{ background:#ccc; border-radius:3px; }
+    .messages-container::-webkit-scrollbar-thumb:hover{ background:#999; }
+
+    @media (max-width:600px){
+      .chat-container{ max-height:100%; border-radius:0; }
+      .message-content{ max-width:85%; }
+    }
+
+    .error-message{ color:#dc2626; font-size:12px; padding:8px 12px; background:#fee2e2; border-radius:8px; margin-top:5px; }
+    .quick-actions{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+    .action-btn{ background:#fff; border:1px solid #ddd; padding:6px 10px; border-radius:6px; font-size:11px; cursor:pointer; transition:all .2s ease; }
+    .action-btn:hover{ background:#f0f0f0; border-color:#667eea; }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="chat-header-avatar">💻</div>
+      <div class="chat-header-info">
+        <h2>Elton</h2>
+        <p><span class="online-indicator"></span>Suporte de TI - Panda Fibra</p>
+      </div>
+    </div>
+
+    <div class="messages-container" id="messagesContainer">
+      <div class="message assistant">
+        <div class="message-content">
+          Olá! 👋 Sou o Elton, do Suporte TI da Panda Fibra. <br>
+          Em que posso te ajudar hoje? ⚙️
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-container">
+      <div class="input-wrapper">
+        <input type="text" id="messageInput" placeholder="Descreva seu problema técnico..." autocomplete="off" />
+      </div>
+      <button class="send-btn" id="sendBtn">➤</button>
+    </div>
+  </div>
+
+  <script>
+    // ========================================
+    // CHAT ELTON - Suporte de TI (n8n)
+    // ========================================
+
+    const config = {
+      N8N_WEBHOOK_URL: 'https://tipanda.app.n8n.cloud/webhook-test/elton', 
+      RETRY_ATTEMPTS: 3,
+      RETRY_DELAY: 1000
+    };
+
+    const SESSION_KEY = 'elton_ti_session_id';
+    if (!localStorage.getItem(SESSION_KEY)) {
+      localStorage.setItem(SESSION_KEY, 'sess-' + Math.random().toString(36).slice(2) + Date.now());
+    }
+    const sessionId = localStorage.getItem(SESSION_KEY);
+
+    class ChatElton {
+      constructor() {
+        this.messagesContainer = document.getElementById('messagesContainer');
+        this.messageInput = document.getElementById('messageInput');
+        this.sendBtn = document.getElementById('sendBtn');
+        this.conversationHistory = [];
+        this.isWaitingResponse = false;
+        this.init();
+      }
+
+      init() {
+        console.log('💻 Inicializando Chat Elton (Suporte TI)...');
+        console.log('Sessão:', sessionId);
+        this.attachEventListeners();
+        this.loadConversationHistory();
+      }
+
+      attachEventListeners() {
+        this.sendBtn.addEventListener('click', () => this.sendMessage());
+        this.messageInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.sendMessage();
+          }
+        });
+        this.messageInput.addEventListener('input', () => {
+          this.sendBtn.disabled = this.messageInput.value.trim() === '';
+        });
+      }
+
+      sendMessage() {
+        const message = this.messageInput.value.trim();
+        if (!message || this.isWaitingResponse) return;
+
+        this.addMessage('user', message);
+        this.conversationHistory.push({ role: 'user', content: message });
+        this.saveConversationHistory();
+
+        this.messageInput.value = '';
+        this.sendBtn.disabled = true;
+
+        this.showTypingIndicator();
+        this.sendToN8N(message);
+      }
+
+      async sendToN8N(userMessage) {
+        this.isWaitingResponse = true;
+
+        try {
+          const response = await fetch(config.N8N_WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json',
+              'User-Agent': 'PandaFibra-ChatSuporteElton/1.0'
+            },
+            body: JSON.stringify({
+              agent: 'elton-ti',
+              type: 'support_message',
+              message: userMessage,
+              history: this.conversationHistory,
+              sessionId,
+              name: 'Colaborador ou Cliente',
+              timestamp: new Date().toISOString()
+            })
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+          const data = await response.json();
+
+          this.removeTypingIndicator();
+
+          const aiResponse = data.response || data.message || 'Desculpe, houve um problema técnico ao processar sua mensagem.';
+          this.addMessage('assistant', aiResponse);
+          this.conversationHistory.push({ role: 'assistant', content: aiResponse });
+          this.saveConversationHistory();
+
+        } catch (error) {
+          console.error('❌ Erro ao enviar mensagem:', error);
+          this.removeTypingIndicator();
+          this.addMessage('system', `⚠️ Erro: ${error.message}`);
+        } finally {
+          this.isWaitingResponse = false;
+          this.messageInput.focus();
+        }
+      }
+
+      addMessage(role, content) {
+        const messageEl = document.createElement('div');
+        messageEl.className = `message ${role}`;
+
+        const contentEl = document.createElement('div');
+        contentEl.className = 'message-content';
+        contentEl.textContent = content;
+
+        messageEl.appendChild(contentEl);
+        this.messagesContainer.appendChild(messageEl);
+        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+      }
+
+      showTypingIndicator() {
+        const messageEl = document.createElement('div');
+        messageEl.className = 'message assistant';
+        messageEl.id = 'typingIndicator';
+
+        const indicatorEl = document.createElement('div');
+        indicatorEl.className = 'typing-indicator';
+        indicatorEl.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+        messageEl.appendChild(indicatorEl);
+        this.messagesContainer.appendChild(messageEl);
+        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+      }
+
+      removeTypingIndicator() {
+        const typing = document.getElementById('typingIndicator');
+        if (typing) typing.remove();
+      }
+
+      saveConversationHistory() {
+        try { localStorage.setItem('elton_ti_chat_history', JSON.stringify(this.conversationHistory)); }
+        catch { console.log('Não foi possível salvar histórico'); }
+      }
+
+      loadConversationHistory() {
+        try {
+          const saved = localStorage.getItem('elton_ti_chat_history');
+          if (saved) {
+            this.conversationHistory = JSON.parse(saved);
+            console.log('✅ Histórico carregado:', this.conversationHistory.length, 'mensagens');
+          }
+        } catch { console.log('Não foi possível carregar histórico'); }
+      }
+    }
+
+    const chat = new ChatElton();
+    console.log('✅ Chat Elton Suporte TI carregado!');
+  </script>
+</body>
+</html>
