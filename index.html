@@ -33,10 +33,19 @@
     .message{ display:flex; gap:8px; animation:messageIn .3s ease; }
     @keyframes messageIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
     .message.user{ justify-content:flex-end; }
-    .message-content{ max-width:70%; padding:12px 16px; border-radius:12px; word-wrap:break-word; font-size:14px; line-height:1.5; }
-    .message.assistant .message-content{ background:#e8eaf6; color:#333; border-radius:12px 12px 12px 0; box-shadow:0 2px 4px rgba(0,0,0,.1); }
-    .message.user .message-content{ background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border-radius:12px 12px 0 12px; box-shadow:0 2px 4px rgba(102,126,234,.3); }
-    .message.system .message-content{ background:#fef3c7; color:#92400e; border-radius:12px; text-align:center; font-size:12px; margin:0 auto; }
+    .message-content{
+      max-width:70%; padding:12px 16px; border-radius:12px; word-wrap:break-word; font-size:14px; line-height:1.5;
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .message.assistant .message-content{
+      background:#e8eaf6; color:#333; border-radius:12px 12px 12px 0; box-shadow:0 2px 4px rgba(0,0,0,.1);
+    }
+    .message.user .message-content{
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border-radius:12px 12px 0 12px; box-shadow:0 2px 4px rgba(102,126,234,.3);
+    }
+    .message.system .message-content{
+      background:#fef3c7; color:#92400e; border-radius:12px; text-align:center; font-size:12px; margin:0 auto;
+    }
 
     .typing-indicator{ display:flex; gap:4px; padding:12px 16px; background:#e8eaf6; border-radius:12px; width:fit-content; }
     .typing-dot{ width:8px; height:8px; background:#667eea; border-radius:50%; animation:typing 1.4s infinite; }
@@ -44,15 +53,64 @@
     .typing-dot:nth-child(3){ animation-delay:.4s; }
     @keyframes typing{ 0%,60%,100%{ transform:translateY(0); opacity:.5;} 30%{ transform:translateY(-10px); opacity:1;} }
 
-    .chat-input-container{ padding:15px; border-top:1px solid #e0e0e0; background:#fff; display:flex; gap:10px; align-items:flex-end; }
-    .input-wrapper{ flex:1; display:flex; gap:8px; align-items:center; background:#f5f5f5; border-radius:24px; padding:10px 15px; border:2px solid #e0e0e0; transition:border-color .3s ease; }
+    .chat-input-container{
+      padding:15px; border-top:1px solid #e0e0e0; background:#fff; display:flex; gap:10px; align-items:flex-end;
+      flex-wrap:wrap;
+    }
+
+    .input-wrapper{
+      flex:1; display:flex; gap:8px; align-items:center; background:#f5f5f5; border-radius:24px; padding:10px 15px;
+      border:2px solid #e0e0e0; transition:border-color .3s ease;
+    }
     .input-wrapper:focus-within{ border-color:#667eea; background:#f8f9fa; }
-    .input-wrapper input{ flex:1; border:none; background:transparent; font-size:14px; outline:none; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .input-wrapper input{
+      flex:1; border:none; background:transparent; font-size:14px; outline:none;
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
     .input-wrapper input::placeholder{ color:#999; }
-    .send-btn{ background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; width:40px; height:40px; border-radius:50%;
-      cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:all .3s ease; flex-shrink:0; }
-    .send-btn:hover{ transform:translateY(-2px); box-shadow:0 5px 15px rgba(102,126,234,.4); }
-    .send-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+    .controls-wrapper{
+      display:flex; gap:8px; align-items:center;
+    }
+
+    .send-btn,
+    .mic-btn{
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color:#fff; border:none; width:40px; height:40px; border-radius:50%;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      font-size:18px; transition:all .3s ease; flex-shrink:0;
+    }
+    .send-btn:hover,
+    .mic-btn:hover{
+      transform:translateY(-2px); box-shadow:0 5px 15px rgba(102,126,234,.4);
+    }
+    .send-btn:disabled,
+    .mic-btn:disabled{
+      opacity:.5; cursor:not-allowed;
+    }
+
+    /* Estado de gravação (fica vermelho piscando) */
+    .mic-btn.recording{
+      background:linear-gradient(135deg,#dc2626 0%,#b91c1c 100%);
+      box-shadow:0 0 15px rgba(220,38,38,.6);
+      animation:recordPulse 1s infinite;
+    }
+    @keyframes recordPulse{
+      0%,100%{ box-shadow:0 0 10px rgba(220,38,38,.4); }
+      50%{ box-shadow:0 0 20px rgba(220,38,38,.8); }
+    }
+
+    .recording-hint{
+      font-size:11px;
+      color:#dc2626;
+      font-weight:500;
+      display:none;
+      width:100%;
+      text-align:center;
+    }
+    .recording-hint.active{
+      display:block;
+    }
 
     .messages-container::-webkit-scrollbar{ width:6px; }
     .messages-container::-webkit-scrollbar-track{ background:transparent; }
@@ -62,12 +120,30 @@
     @media (max-width:600px){
       .chat-container{ max-height:100%; border-radius:0; }
       .message-content{ max-width:85%; }
+      .chat-input-container{ flex-direction:column; align-items:stretch; }
+      .controls-wrapper{ align-self:flex-end; }
     }
 
-    .error-message{ color:#dc2626; font-size:12px; padding:8px 12px; background:#fee2e2; border-radius:8px; margin-top:5px; }
+    .error-message{
+      color:#dc2626; font-size:12px; padding:8px 12px; background:#fee2e2; border-radius:8px; margin-top:5px;
+    }
     .quick-actions{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
-    .action-btn{ background:#fff; border:1px solid #ddd; padding:6px 10px; border-radius:6px; font-size:11px; cursor:pointer; transition:all .2s ease; }
+    .action-btn{
+      background:#fff; border:1px solid #ddd; padding:6px 10px; border-radius:6px; font-size:11px; cursor:pointer; transition:all .2s ease;
+    }
     .action-btn:hover{ background:#f0f0f0; border-color:#667eea; }
+
+    /* bolha pequena de label tipo "[Áudio]" */
+    .audio-label {
+      font-size:11px;
+      font-weight:600;
+      opacity:0.8;
+    }
+    .audio-player {
+      width:100%;
+      max-width:220px;
+      outline:none;
+    }
   </style>
 </head>
 <body>
@@ -83,34 +159,51 @@
     <div class="messages-container" id="messagesContainer">
       <div class="message assistant">
         <div class="message-content">
-          Olá! 👋 Sou o Welton, do Suporte TI da Panda Fibra. <br>
-          Em que posso te ajudar hoje? ⚙️
+          <div>Olá! 👋 Sou o Welton, do Suporte TI da Panda Fibra. <br>
+          Em que posso te ajudar hoje? ⚙️</div>
         </div>
       </div>
     </div>
 
     <div class="chat-input-container">
       <div class="input-wrapper">
-        <input type="text" id="messageInput" placeholder="Descreva seu problema técnico..." autocomplete="off" />
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Descreva seu problema técnico..."
+          autocomplete="off"
+        />
       </div>
-      <button class="send-btn" id="sendBtn">➤</button>
+
+      <div class="controls-wrapper">
+        <button class="mic-btn" id="micBtn" title="Segure para gravar áudio">🎤</button>
+        <button class="send-btn" id="sendBtn">➤</button>
+      </div>
+
+      <div class="recording-hint" id="recordingHint">
+        Gravando... solte para enviar 🔴
+      </div>
     </div>
   </div>
 
   <script>
     // ========================================
     // CHAT ELTON - Suporte de TI (n8n)
+    // + Suporte a Áudio
     // ========================================
 
     const config = {
-      N8N_WEBHOOK_URL: 'https://flow.grupopanda.net.br/webhook-test/elton', 
+      N8N_WEBHOOK_URL: 'https://flow.grupopanda.net.br/webhook-test/elton',
       RETRY_ATTEMPTS: 3,
       RETRY_DELAY: 1000
     };
 
     const SESSION_KEY = 'elton_ti_session_id';
     if (!localStorage.getItem(SESSION_KEY)) {
-      localStorage.setItem(SESSION_KEY, 'sess-' + Math.random().toString(36).slice(2) + Date.now());
+      localStorage.setItem(
+        SESSION_KEY,
+        'sess-' + Math.random().toString(36).slice(2) + Date.now()
+      );
     }
     const sessionId = localStorage.getItem(SESSION_KEY);
 
@@ -119,8 +212,17 @@
         this.messagesContainer = document.getElementById('messagesContainer');
         this.messageInput = document.getElementById('messageInput');
         this.sendBtn = document.getElementById('sendBtn');
+        this.micBtn = document.getElementById('micBtn');
+        this.recordingHint = document.getElementById('recordingHint');
+
         this.conversationHistory = [];
         this.isWaitingResponse = false;
+
+        // Áudio / gravação
+        this.mediaRecorder = null;
+        this.audioChunks = [];
+        this.isRecording = false;
+
         this.init();
       }
 
@@ -132,30 +234,61 @@
       }
 
       attachEventListeners() {
+        // Enviar texto com botão
         this.sendBtn.addEventListener('click', () => this.sendMessage());
+
+        // Enviar texto com Enter
         this.messageInput.addEventListener('keypress', (e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             this.sendMessage();
           }
         });
+
+        // Habilita/desabilita botão de enviar texto
         this.messageInput.addEventListener('input', () => {
           this.sendBtn.disabled = this.messageInput.value.trim() === '';
         });
+
+        // Botão de áudio (push-to-talk style: segurar para gravar)
+        // mobile: touchstart/touchend
+        this.micBtn.addEventListener('mousedown', () => this.startRecording());
+        this.micBtn.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          this.startRecording();
+        });
+
+        document.addEventListener('mouseup', () => {
+          if (this.isRecording) this.stopRecordingAndSend();
+        });
+        document.addEventListener('touchend', (e) => {
+          if (this.isRecording) {
+            e.preventDefault();
+            this.stopRecordingAndSend();
+          }
+        });
       }
 
+      // ============================
+      // TEXTO
+      // ============================
       sendMessage() {
         const message = this.messageInput.value.trim();
         if (!message || this.isWaitingResponse) return;
 
-        this.addMessage('user', message);
+        // adiciona na tela e histórico
+        this.addMessage('user', { text: message });
         this.conversationHistory.push({ role: 'user', content: message });
         this.saveConversationHistory();
 
+        // limpa input
         this.messageInput.value = '';
         this.sendBtn.disabled = true;
 
+        // indicador "digitando"
         this.showTypingIndicator();
+
+        // envia pro n8n
         this.sendToN8N(message);
       }
 
@@ -177,7 +310,8 @@
               history: this.conversationHistory,
               sessionId,
               name: 'Colaborador ou Cliente',
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              inputFormat: 'text'
             })
           });
 
@@ -187,28 +321,214 @@
 
           this.removeTypingIndicator();
 
-          const aiResponse = data.response || data.message || 'Desculpe, houve um problema técnico ao processar sua mensagem.';
-          this.addMessage('assistant', aiResponse);
-          this.conversationHistory.push({ role: 'assistant', content: aiResponse });
+          // tentamos mapear possíveis campos de resposta
+          const aiText =
+            data.responseText ||
+            data.response ||
+            data.message ||
+            'Desculpe, houve um problema técnico ao processar sua mensagem.';
+          const aiAudioUrl = data.responseAudioUrl || data.audioUrl || null;
+
+          // render assistant (suporta texto e/ou áudio)
+          this.addMessage('assistant', {
+            text: aiText,
+            audioUrl: aiAudioUrl
+          });
+
+          // histórico: salvamos o texto. Se tiver áudio, marcamos.
+          let historyContent = aiText;
+          if (aiAudioUrl) {
+            historyContent += ` [AUDIO RECEBIDO: ${aiAudioUrl}]`;
+          }
+          this.conversationHistory.push({ role: 'assistant', content: historyContent });
           this.saveConversationHistory();
 
         } catch (error) {
           console.error('❌ Erro ao enviar mensagem:', error);
           this.removeTypingIndicator();
-          this.addMessage('system', `⚠️ Erro: ${error.message}`);
+          this.addMessage('system', { text: `⚠️ Erro: ${error.message}` });
         } finally {
           this.isWaitingResponse = false;
           this.messageInput.focus();
         }
       }
 
-      addMessage(role, content) {
+      // ============================
+      // ÁUDIO - captura e envio
+      // ============================
+
+      async startRecording() {
+        if (this.isWaitingResponse || this.isRecording) return;
+
+        // pede permissão microfone
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          this.audioChunks = [];
+          this.mediaRecorder = new MediaRecorder(stream);
+
+          // quando chegar dados de áudio, guarda
+          this.mediaRecorder.addEventListener('dataavailable', (event) => {
+            if (event.data.size > 0) {
+              this.audioChunks.push(event.data);
+            }
+          });
+
+          // muda UI pra "gravando"
+          this.isRecording = true;
+          this.micBtn.classList.add('recording');
+          this.recordingHint.classList.add('active');
+
+          this.mediaRecorder.start();
+          console.log('🎙️ Gravando áudio...');
+        } catch (err) {
+          console.error('🚫 Não conseguiu acessar microfone:', err);
+          this.addMessage('system', {
+            text: '⚠️ Não consegui acessar o microfone. Verifique as permissões.'
+          });
+        }
+      }
+
+      async stopRecordingAndSend() {
+        if (!this.isRecording) return;
+        this.isRecording = false;
+
+        // volta UI ao normal
+        this.micBtn.classList.remove('recording');
+        this.recordingHint.classList.remove('active');
+
+        if (!this.mediaRecorder) return;
+
+        // para a gravação, espera finalizar, monta blob e envia
+        this.mediaRecorder.addEventListener('stop', async () => {
+          const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+          const audioUrlLocal = URL.createObjectURL(audioBlob);
+
+          // mostra na tela a bolha do usuário com player
+          this.addMessage('user', {
+            text: '[Áudio enviado]',
+            audioUrl: audioUrlLocal
+          });
+
+          // guarda no histórico texto simbólico
+          this.conversationHistory.push({
+            role: 'user',
+            content: '[AUDIO ENVIADO]'
+          });
+          this.saveConversationHistory();
+
+          // mostra "digitando"
+          this.showTypingIndicator();
+
+          // envia de fato pro n8n
+          await this.sendAudioToN8N(audioBlob);
+
+          // libera stream tracks
+          if (this.mediaRecorder.stream) {
+            this.mediaRecorder.stream.getTracks().forEach(t => t.stop());
+          }
+          this.mediaRecorder = null;
+          this.audioChunks = [];
+        });
+
+        this.mediaRecorder.stop();
+      }
+
+      async sendAudioToN8N(audioBlob) {
+        this.isWaitingResponse = true;
+
+        try {
+          const formData = new FormData();
+          formData.append('agent', 'elton-ti');
+          formData.append('type', 'support_message');
+          formData.append('sessionId', sessionId);
+          formData.append('name', 'Colaborador ou Cliente');
+          formData.append('timestamp', new Date().toISOString());
+          formData.append('history', JSON.stringify(this.conversationHistory));
+          formData.append('inputFormat', 'audio');
+          formData.append('audio', audioBlob, 'gravacao.webm');
+
+          const response = await fetch(config.N8N_WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'cors',
+            body: formData
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+          const data = await response.json();
+
+          this.removeTypingIndicator();
+
+          // tenta ler texto + áudio de resposta
+          const aiText =
+            data.responseText ||
+            data.response ||
+            data.message ||
+            'Recebi seu áudio e estou processando sua solicitação. ✅';
+          const aiAudioUrl = data.responseAudioUrl || data.audioUrl || null;
+
+          // mostra resposta
+          this.addMessage('assistant', {
+            text: aiText,
+            audioUrl: aiAudioUrl
+          });
+
+          // registra no histórico
+          let historyContent = aiText;
+          if (aiAudioUrl) {
+            historyContent += ` [AUDIO RECEBIDO: ${aiAudioUrl}]`;
+          }
+          this.conversationHistory.push({ role: 'assistant', content: historyContent });
+          this.saveConversationHistory();
+
+        } catch (error) {
+          console.error('❌ Erro ao enviar áudio:', error);
+          this.removeTypingIndicator();
+          this.addMessage('system', { text: `⚠️ Erro no envio de áudio: ${error.message}` });
+        } finally {
+          this.isWaitingResponse = false;
+          this.messageInput.focus();
+        }
+      }
+
+      // ============================
+      // Renderização de mensagens
+      // ============================
+      addMessage(role, { text = '', audioUrl = null } = {}) {
         const messageEl = document.createElement('div');
         messageEl.className = `message ${role}`;
 
         const contentEl = document.createElement('div');
         contentEl.className = 'message-content';
-        contentEl.textContent = content;
+
+        // Texto (se tiver)
+        if (text && text.trim() !== '') {
+          const textEl = document.createElement('div');
+          textEl.textContent = text;
+          contentEl.appendChild(textEl);
+        }
+
+        // Player de áudio (se tiver)
+        if (audioUrl) {
+          const audioWrapper = document.createElement('div');
+          audioWrapper.style.display = 'flex';
+          audioWrapper.style.flexDirection = 'column';
+          audioWrapper.style.gap = '4px';
+
+          const smallLabel = document.createElement('div');
+          smallLabel.className = 'audio-label';
+          smallLabel.textContent = role === 'user' ? '[Seu áudio]' : '[Áudio do suporte]';
+
+          const audioPlayer = document.createElement('audio');
+          audioPlayer.className = 'audio-player';
+          audioPlayer.controls = true;
+          audioPlayer.src = audioUrl;
+
+          audioWrapper.appendChild(smallLabel);
+          audioWrapper.appendChild(audioPlayer);
+
+          contentEl.appendChild(audioWrapper);
+        }
 
         messageEl.appendChild(contentEl);
         this.messagesContainer.appendChild(messageEl);
@@ -234,9 +554,18 @@
         if (typing) typing.remove();
       }
 
+      // ============================
+      // Histórico local
+      // ============================
       saveConversationHistory() {
-        try { localStorage.setItem('elton_ti_chat_history', JSON.stringify(this.conversationHistory)); }
-        catch { console.log('Não foi possível salvar histórico'); }
+        try {
+          localStorage.setItem(
+            'elton_ti_chat_history',
+            JSON.stringify(this.conversationHistory)
+          );
+        } catch {
+          console.log('Não foi possível salvar histórico');
+        }
       }
 
       loadConversationHistory() {
@@ -244,20 +573,20 @@
           const saved = localStorage.getItem('elton_ti_chat_history');
           if (saved) {
             this.conversationHistory = JSON.parse(saved);
-            console.log('✅ Histórico carregado:', this.conversationHistory.length, 'mensagens');
+            console.log(
+              '✅ Histórico carregado:',
+              this.conversationHistory.length,
+              'mensagens'
+            );
           }
-        } catch { console.log('Não foi possível carregar histórico'); }
+        } catch {
+          console.log('Não foi possível carregar histórico');
+        }
       }
     }
 
     const chat = new ChatElton();
-    console.log('✅ Chat Elton Suporte TI carregado!');
+    console.log('✅ Chat Elton Suporte TI carregado com suporte a Áudio!');
   </script>
 </body>
 </html>
-
-
-
-
-
-
